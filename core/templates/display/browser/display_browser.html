@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- Debug Playlist ID -->
+<p>Playlist ID: {{ playlist.id }}</p>
+
+<!-- Fullscreen Container -->
+<div id="display-container" class="fixed inset-0 bg-black flex items-center justify-center">
+    <!-- Content will be dynamically loaded here -->
+    <div id="content-display" class="w-full h-full flex items-center justify-center">
+        {% if contents %}
+            <!-- Initial content (first item) -->
+            {% with content=contents.0 %}
+                {% include "display/browser/display_content.html" %}
+            {% endwith %}
+        {% else %}
+            <p class="text-white text-2xl">No content in this playlist.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- HTMX to Poll for Updates -->
+<div id="poll-update" hx-get="{% url 'core:display_browser' playlist.id %}" hx-trigger="doSearch from:body" hx-swap="none"></div>
+
+<!-- Embed JSON Data and Content Hash in a Script Tag -->
+<script>
+    const contents = JSON.parse('{{ contents_json|escapejs }}');
+    console.log("Contents:", contents);
+    let currentContentHash = '{{ content_hash }}';  // Store the current content hash
+    console.log("Current content hash:", currentContentHash);
+</script>
+
+<!-- JavaScript to Cycle Through Contents -->
+<script>
+    let currentIndex = 0;
+
+    function displayNextContent() {
+        if (contents.length === 0) return;
+        
+        // Check if the cycle has restarted (currentIndex is back to 0)
+        if (currentIndex === 0) {
+            console.log("Cycle restarted. Triggering HTMX request...");
+            document.body.dispatchEvent(new Event('doSearch'));
+        }
+
+        // Get the current content
+        const content = contents[currentIndex];
+        console.log("Current content:", content);
+
+        // Update the display
+        const contentDisplay = document.getElementById('content-display');
+        if (content.content_type === 'image') {
+            contentDisplay.innerHTML = `
+                <img src="${content.mediafile}" alt="Image" class="max-w-full max-h-full object-contain">
+            `;
+        } else if (content.content_type === 'video') {
+            contentDisplay.innerHTML = `
+                <video class="max-w-full max-h-full" autoplay muted loop>
+                    <source src="${content.mediafile}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            `;
+        } else if (content.content_type === 'view') {
+            contentDisplay.innerHTML = `
+                <iframe src="${content.custom_page}" class="w-full h-full border-none"></iframe>
+            `;
+        }
+
+        // Move to the next content
+        currentIndex = (currentIndex + 1) % contents.length;
+        console.log("Current index:", currentIndex);
+
+        // Schedule the next content
+        setTimeout(displayNextContent, content.duration * 1000);  // Convert to milliseconds
+    }
+
+    // Start the cycle
+    displayNextContent();
+</script>
+
+<!-- JavaScript to Handle HTMX Updates -->
+<script>
+    document.body.addEventListener('htmx:afterRequest', function(evt) {
+        console.log("HTMX afterRequest event triggered");
+        console.log("Request path:", evt.detail.requestConfig.path);
+        console.log("Expected path:", "{% url 'core:display_browser' playlist.id %}");
+
+        if (evt.detail.requestConfig.path === "{% url 'core:display_browser' playlist.id %}") {
+            // Fetch the updated content hash from the response
+            const updatedContentHash = evt.detail.xhr.getResponseHeader('X-Content-Hash');
+            console.log("Updated content hash:", updatedContentHash);
+
+            // Compare the current hash with the updated hash
+            if (updatedContentHash && updatedContentHash !== currentContentHash) {
+                console.log("Content hash changed. Reloading page...");
+                window.location.reload();
+            }
+        }
+    });
+</script>
+
+{% endblock content %}

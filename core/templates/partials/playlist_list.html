@@ -1,0 +1,19 @@
+<div id="playlist-list" class="mt-6">
+    <h2 class="text-2xl font-bold mb-6 text-gray-800">Playlists</h2>
+    <ul class="space-y-4">
+        {% for playlist in playlists %}
+            <li class="bg-white p-6 rounded-lg shadow-md flex justify-between items-center hover:shadow-lg transition-shadow duration-200">
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold text-gray-900">{{ playlist.name }}</h3>
+                    <p class="text-sm text-gray-600">
+                        Group: <span class="font-medium">{{ playlist.group.name }}</span>,
+                        Subgroup: <span class="font-medium">{{ playlist.subgroup.name|default:"None" }}</span>
+                    </p>
+                </div>
+                <a href="{% url 'core:edit_playlist' playlist.id %}" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-200">
+                    Edit
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+</div>

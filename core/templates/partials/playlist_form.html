@@ -1,0 +1,42 @@
+<div class="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
+    <h1 class="text-2xl font-bold mb-4">Create Playlist</h1>
+    <form method="post" hx-post="{% url 'core:playlists' %}" hx-target="#playlist-list" hx-swap="outerHTML">
+        {% csrf_token %}
+        
+        <!-- Name Field -->
+        <div class="mb-4">
+            <label class="block text-gray-700">Name</label>
+            {{ form.name }}
+        </div>
+
+        <!-- Group Field -->
+        <div class="mb-4">
+            <label class="block text-gray-700">Group</label>
+            {{ form.group }}
+        </div>
+
+        <!-- Subgroup Field (Dynamically Updated) -->
+        <div class="mb-4">
+            <label class="block text-gray-700">Subgroup</label>
+            <select name="subgroup" id="id_subgroup" class="w-full p-2 border rounded">
+                <option value="">---------</option> <!-- Default empty option -->
+            </select>
+        </div>
+
+        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Create</button>
+    </form>
+</div>
+
+<!-- Dynamic Subgroup Filtering -->
+<script>
+    document.getElementById('id_group').addEventListener('change', function() {
+        var groupId = this.value;
+        if (groupId) {
+            // Fetch subgroups for the selected group
+            htmx.ajax('GET', '/get_subgroups/?group_id=' + groupId, { target: '#id_subgroup', swap: 'innerHTML' });
+        } else {
+            // If no group is selected, clear the subgroup dropdown
+            document.getElementById('id_subgroup').innerHTML = '<option value="">---------</option>';
+        }
+    });
+</script>

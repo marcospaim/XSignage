@@ -1,0 +1,17 @@
+<!-- Group List -->
+ <div id="group-list">
+    {% include 'partials/subgroup_form.html' %}
+    <div class="mt-6">
+        {% for group in groups %}
+            <div class="bg-white p-6 rounded-lg shadow-md mb-4">
+                <h2 class="text-xl font-bold">{{ group.name }}</h2>
+                <ul class="mt-2">
+                    {% for subgroup in group.subgroup_set.all %}
+                        <li class="ml-4 text-gray-700">{{ subgroup.name }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endfor %}
+    </div>
+ 
+</div>

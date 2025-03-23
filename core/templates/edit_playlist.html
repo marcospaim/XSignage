@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="max-w-4xl mx-auto p-6">
+    <h1 class="text-2xl font-bold mb-6">Edit Playlist: {{ playlist.name }}</h1>
+
+    <!-- Form to Add Content -->
+    <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+        <h2 class="text-xl font-semibold mb-4">Add Content</h2>
+        <form method="post" hx-post="{% url 'core:add_content' playlist.id %}" hx-target="#content-list" hx-swap="innerHTML">
+            {% csrf_token %}
+            
+            <!-- MediaFile or CustomPage Selection -->
+            <div class="mb-4">
+                <label class="block text-gray-700 font-medium mb-2">Select Media or View</label>
+                <div class="flex space-x-4">
+                    <button type="button" onclick="toggleMediaFiles()" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-200">
+                        Show Media Files
+                    </button>
+                    <!-- Conditionally Show "Show Custom Pages" Button -->
+                    {% if custompages %}
+                        <button type="button" onclick="toggleCustomPages()" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors duration-200">
+                            Show Custom Pages
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- MediaFile Options (Hidden by Default) -->
+            <div id="mediafile-options" class="hidden mb-4">
+                <h3 class="text-lg font-semibold mb-2">Media Files</h3>
+                <div class="grid grid-cols-3 gap-4">
+                    {% for mediafile in mediafiles %}
+                        <label class="flex flex-col items-center space-y-2 p-2 border rounded-md hover:bg-gray-50 transition-colors duration-200">
+                            <!-- Thumbnail for images -->
+                            {% if mediafile.file.url|lower|slice:"-4:" == ".jpg" or mediafile.file.url|lower|slice:"-5:" == ".jpeg" or mediafile.file.url|lower|slice:"-4:" == ".png" or mediafile.file.url|lower|slice:"-4:" == ".gif" %}
+                                <img src="{{ mediafile.file.url }}" alt="{{ mediafile.file.name }}" class="w-24 h-24 object-cover rounded-lg">
+
+                            <!-- Thumbnail for videos -->
+                            {% elif mediafile.file.url|lower|slice:"-4:" == ".mp4" or mediafile.file.url|lower|slice:"-4:" == ".mov" %}
+                                <video class="w-24 h-24 object-cover rounded-lg" data-duration-url="{% url 'core:get_video_duration' mediafile.id %}">
+                                    <source src="{{ mediafile.file.url }}" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
+
+                            <!-- Generic file icon for non-image and non-video files -->
+                            {% else %}
+                                <div class="w-24 h-24 flex items-center justify-center bg-gray-200 rounded-lg">
+                                    <span class="text-2xl">📄</span>
+                                </div>
+                            {% endif %}
+
+                            <!-- File Name -->
+                            <span class="text-sm text-center truncate w-full">{{ mediafile.file.name }}</span>
+                            <!-- Radio Button -->
+                            <input type="radio" name="mediafile" value="{{ mediafile.id }}" class="form-radio mediafile-radio">
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- CustomPage Options (Hidden by Default) -->
+            <div id="custompage-options" class="hidden mb-4">
+                <h3 class="text-lg font-semibold mb-2">Custom Pages</h3>
+                <div class="grid grid-cols-3 gap-4">
+                    {% for custompage in custompages %}
+                        <label class="flex items-center space-x-2">
+                            <input type="radio" name="custompage" value="{{ custompage.id }}" class="form-radio">
+                            <span>{{ custompage.view_name }}</span>
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Duration Field -->
+            <div class="mb-4">
+                <label class="block text-gray-700 font-medium mb-2">Duration (seconds)</label>
+                <input type="number" name="duration" id="duration-input" min="1" max="3600" required class="w-full p-2 border rounded-md">
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-200">
+                Add Content
+            </button>
+        </form>
+    </div>
+
+    <!-- List of Existing Content -->
+    <div id="content-list" class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold mb-4">Contents in Playlist</h2>
+        <ul class="space-y-4">
+            {% for content in playlist.content_set.all %}
+                <li class="bg-gray-50 p-4 rounded-md">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center space-x-4">
+                            <!-- Thumbnail for MediaFile -->
+                            {% if content.mediafile %}
+                                <div class="w-16 h-16 flex-shrink-0">
+                                    <!-- Thumbnail for images -->
+                                    {% if content.mediafile.file.url|lower|slice:"-4:" == ".jpg" or content.mediafile.file.url|lower|slice:"-5:" == ".jpeg" or content.mediafile.file.url|lower|slice:"-4:" == ".png" or content.mediafile.file.url|lower|slice:"-4:" == ".gif" %}
+                                        <img src="{{ content.mediafile.file.url }}" alt="{{ content.mediafile.file.name }}" class="w-full h-full object-cover rounded-md">
+
+                                    <!-- Thumbnail for videos -->
+                                    {% elif content.mediafile.file.url|lower|slice:"-4:" == ".mp4" or content.mediafile.file.url|lower|slice:"-4:" == ".mov" %}
+                                        <video class="w-full h-full object-cover rounded-md" controls poster="{{ content.mediafile.file.url }}">
+                                            <source src="{{ content.mediafile.file.url }}" type="video/mp4">
+                                            Your browser does not support the video tag.
+                                        </video>
+
+                                    <!-- Generic file icon for non-image and non-video files -->
+                                    {% else %}
+                                        <div class="w-full h-full bg-gray-200 rounded-md flex items-center justify-center">
+                                            <span class="text-2xl">📄</span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                            <!-- Content Details -->
+                            <div>
+                                <h3 class="text-lg font-semibold truncate max-w-[200px]">
+                                    {% if content.content_type == 'view' %}
+                                        External View: {{ content.custom_page.view_name }}
+                                    {% else %}
+                                        {{ content.mediafile.file.name }}
+                                    {% endif %}
+                                </h3>
+                                <p class="text-sm text-gray-600">Duration: {{ content.duration }} seconds</p>
+                            </div>
+                        </div>
+                        <!-- Remove Button -->
+                        <button
+                            hx-delete="{% url 'core:delete_content' content.id %}"
+                            hx-confirm="Are you sure you want to delete this content?"
+                            hx-target="#content-list"
+                            hx-swap="innerHTML"
+                            class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                        >
+                            Remove
+                        </button>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<!-- JavaScript to Toggle MediaFile and CustomPage Options -->
+<script>
+    function toggleMediaFiles() {
+        const mediafileOptions = document.getElementById('mediafile-options');
+        mediafileOptions.classList.toggle('hidden');
+    }
+
+    function toggleCustomPages() {
+        const custompageOptions = document.getElementById('custompage-options');
+        custompageOptions.classList.toggle('hidden');
+    }
+
+    // Add event listeners to mediafile radio buttons
+    document.querySelectorAll('.mediafile-radio').forEach(radio => {
+        radio.addEventListener('change', async function() {
+            const durationInput = document.getElementById('duration-input');
+            const videoElement = this.closest('label').querySelector('video');
+
+            if (videoElement) {
+                // Fetch the video duration from the server
+                const durationUrl = videoElement.getAttribute('data-duration-url');
+                const response = await fetch(durationUrl);
+                const data = await response.json();
+
+                // Set the duration input value and disable it
+                durationInput.value = data.duration;
+                durationInput.disabled = true;
+            } else {
+                // Enable the duration input if a non-video option is selected
+                durationInput.disabled = false;
+            }
+        });
+    });
+</script>
+
+{% endblock content %}
