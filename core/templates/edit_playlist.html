@@ -1,26 +1,28 @@
 {% extends "base.html" %}
+{% load i18n %}
+
 {% block content %}
 
 <div class="max-w-4xl mx-auto p-6">
-    <h1 class="text-2xl font-bold mb-6">Edit Playlist: {{ playlist.name }}</h1>
+    <h1 class="text-2xl font-bold mb-6">{% trans "Edit Playlist" %}: {{ playlist.name }}</h1>
 
     <!-- Form to Add Content -->
     <div class="bg-white p-6 rounded-lg shadow-md mb-8">
-        <h2 class="text-xl font-semibold mb-4">Add Content</h2>
+        <h2 class="text-xl font-semibold mb-4">{% trans "Add Content" %}</h2>
         <form method="post" hx-post="{% url 'core:add_content' playlist.id %}" hx-target="#content-list" hx-swap="innerHTML">
             {% csrf_token %}
             
             <!-- MediaFile or CustomPage Selection -->
             <div class="mb-4">
-                <label class="block text-gray-700 font-medium mb-2">Select Media or View</label>
+                <label class="block text-gray-700 font-medium mb-2">{% trans "Select Media or View" %}</label>
                 <div class="flex space-x-4">
-                    <button type="button" onclick="toggleMediaFiles()" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-200">
-                        Show Media Files
+                    <button type="button" onclick="toggleMediaFiles()" class="bg-delft_blue-700 text-white px-4 py-2 rounded-md hover:bg-delft_blue-600 transition-colors duration-200">
+                        {% trans "Show Media Files" %}
                     </button>
                     <!-- Conditionally Show "Show Custom Pages" Button -->
                     {% if custompages %}
                         <button type="button" onclick="toggleCustomPages()" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors duration-200">
-                            Show Custom Pages
+                            {% trans "Show Custom Pages" %}
                         </button>
                     {% endif %}
                 </div>
@@ -28,7 +30,7 @@
 
             <!-- MediaFile Options (Hidden by Default) -->
             <div id="mediafile-options" class="hidden mb-4">
-                <h3 class="text-lg font-semibold mb-2">Media Files</h3>
+                <h3 class="text-lg font-semibold mb-2">{% trans "Media Files" %}</h3>
                 <div class="grid grid-cols-3 gap-4">
                     {% for mediafile in mediafiles %}
                         <label class="flex flex-col items-center space-y-2 p-2 border rounded-md hover:bg-gray-50 transition-colors duration-200">
@@ -40,7 +42,7 @@
                             {% elif mediafile.file.url|lower|slice:"-4:" == ".mp4" or mediafile.file.url|lower|slice:"-4:" == ".mov" %}
                                 <video class="w-24 h-24 object-cover rounded-lg" data-duration-url="{% url 'core:get_video_duration' mediafile.id %}">
                                     <source src="{{ mediafile.file.url }}" type="video/mp4">
-                                    Your browser does not support the video tag.
+                                    {% trans "Your browser does not support the video tag." %}
                                 </video>
 
                             <!-- Generic file icon for non-image and non-video files -->
@@ -61,7 +63,7 @@
 
             <!-- CustomPage Options (Hidden by Default) -->
             <div id="custompage-options" class="hidden mb-4">
-                <h3 class="text-lg font-semibold mb-2">Custom Pages</h3>
+                <h3 class="text-lg font-semibold mb-2">{% trans "Custom Pages" %}</h3>
                 <div class="grid grid-cols-3 gap-4">
                     {% for custompage in custompages %}
                         <label class="flex items-center space-x-2">
@@ -74,20 +76,20 @@
 
             <!-- Duration Field -->
             <div class="mb-4">
-                <label class="block text-gray-700 font-medium mb-2">Duration (seconds)</label>
+                <label class="block text-gray-700 font-medium mb-2">{% trans "Duration (seconds)" %}</label>
                 <input type="number" name="duration" id="duration-input" min="1" max="3600" required class="w-full p-2 border rounded-md">
             </div>
 
             <!-- Submit Button -->
-            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-200">
-                Add Content
+            <button type="submit" class="bg-delft_blue-700 text-white px-4 py-2 rounded-md hover:bg-delft_blue-600 transition-colors duration-200">
+                {% trans "Add Content" %}
             </button>
         </form>
     </div>
 
     <!-- List of Existing Content -->
     <div id="content-list" class="bg-white p-6 rounded-lg shadow-md">
-        <h2 class="text-xl font-semibold mb-4">Contents in Playlist</h2>
+        <h2 class="text-xl font-semibold mb-4">{% trans "Contents in Playlist" %}</h2>
         <ul class="space-y-4">
             {% for content in playlist.content_set.all %}
                 <li class="bg-gray-50 p-4 rounded-md">
@@ -104,7 +106,7 @@
                                     {% elif content.mediafile.file.url|lower|slice:"-4:" == ".mp4" or content.mediafile.file.url|lower|slice:"-4:" == ".mov" %}
                                         <video class="w-full h-full object-cover rounded-md" controls poster="{{ content.mediafile.file.url }}">
                                             <source src="{{ content.mediafile.file.url }}" type="video/mp4">
-                                            Your browser does not support the video tag.
+                                            {% trans "Your browser does not support the video tag." %}
                                         </video>
 
                                     <!-- Generic file icon for non-image and non-video files -->
@@ -119,23 +121,23 @@
                             <div>
                                 <h3 class="text-lg font-semibold truncate max-w-[200px]">
                                     {% if content.content_type == 'view' %}
-                                        External View: {{ content.custom_page.view_name }}
+                                        {% trans "External View" %}: {{ content.custom_page.view_name }}
                                     {% else %}
                                         {{ content.mediafile.file.name }}
                                     {% endif %}
                                 </h3>
-                                <p class="text-sm text-gray-600">Duration: {{ content.duration }} seconds</p>
+                                <p class="text-sm text-gray-600">{% trans "Duration" %}: {{ content.duration }} {% trans "seconds" %}</p>
                             </div>
                         </div>
                         <!-- Remove Button -->
                         <button
                             hx-delete="{% url 'core:delete_content' content.id %}"
-                            hx-confirm="Are you sure you want to delete this content?"
+                            hx-confirm="{% trans 'Are you sure you want to delete this content?' %}"
                             hx-target="#content-list"
                             hx-swap="innerHTML"
-                            class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                            class="bg-wine-600 hover:bg-wine-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
                         >
-                            Remove
+                            {% trans "Remove" %}
                         </button>
                     </div>
                 </li>

@@ -1,26 +1,26 @@
-<div class="bg-gray-800 text-white w-64 space-y-6 py-7 px-2 fixed h-screen">
+{% load i18n %}
+
+<div class="bg-delft_blue text-white w-64 space-y-6 py-7 px-2 fixed h-screen">
     <div class="text-2xl font-semibold text-center">
-        <a href="{% url 'core:index' %}" >
+        <a href="{% url 'core:index' %}">
             XSignage
         </a>
-        
     </div>
     <nav>
-        <a href="{% url 'core:index' %}" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700">
-            Home
+        <a href="{% url 'core:index' %}" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-delft_blue-700">
+            {% trans "Home" %}
         </a>
-        <a href="{% url 'core:upload_media' %}" " class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700">
-            Media Files
+        <a href="{% url 'core:upload_media' %}" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-delft_blue-700">
+            {% trans "Media Files" %}
         </a>
-        <a href="{% url 'core:playlists' %}" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700">
-            Playlists
+        <a href="{% url 'core:playlists' %}" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-delft_blue-700">
+            {% trans "Playlists" %}
         </a>
-        <a href="{% url 'core:groups' %}" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700">
-            Groups
+        <a href="{% url 'core:groups' %}" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-delft_blue-700">
+            {% trans "Groups" %}
         </a>
-        <a href="{% url 'core:displays' %}" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700">
-            Displays
+        <a href="{% url 'core:displays' %}" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-delft_blue-700">
+            {% trans "Displays" %}
         </a>
-        
     </nav>
 </div>

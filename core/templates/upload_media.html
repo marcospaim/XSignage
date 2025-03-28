@@ -1,9 +1,11 @@
 {% extends "base.html" %}
+{% load i18n %}
+
 {% block content %}
 
 {% include 'partials/upload-container.html' %}
 
-<h1 class="text-3xl font-bold mb-8">Media Files</h1>
+<h1 class="text-3xl font-bold mb-8">{% trans "Media Files" %}</h1>
 {% include 'partials/mediafiles-list.html' %}
 
 {% endblock content %}

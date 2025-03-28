@@ -26,7 +26,7 @@ SECRET_KEY = "django-insecure-_r56)i35xyr-psu=u*6vx$ba1f*6vi8n5e7tfo#*s4pk9@hh51
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 
 # Application definition
@@ -43,8 +43,10 @@ INSTALLED_APPS = [
     "django_filters",
     "tailwind",
     "django_browser_reload",
-    "core",
     "django_cleanup.apps.CleanupConfig",
+
+    "core",
+    "accounts",
 ]
 
 MIDDLEWARE = [
@@ -113,7 +115,15 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = "pt-BR"
+LANGUAGE_CODE = "pt-br"
+LANGUAGES = [
+    ('en', 'English'),
+    ('pt-br', 'Portuguese'),
+]
+
+LOCALE_PATHS = [
+    BASE_DIR / "locale",
+]
 
 # Configure your timezone:
 # List of tz database time zones https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
@@ -161,3 +171,7 @@ if not TESTING:
         "debug_toolbar.middleware.DebugToolbarMiddleware",
         *MIDDLEWARE,
     ]
+
+
+LOGOUT_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/'

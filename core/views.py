@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.core.serializers import serialize
+from django.contrib.auth.decorators import login_required
 import json
 import hashlib
 import subprocess
@@ -11,11 +12,11 @@ from .forms import MediaFileForm, PlaylistForm, GroupForm, SubgroupForm
 from .models import MediaFile, Playlist, Group, Subgroup, Content, CustomPage
 from .serializers import serialize_contents
 
-
+@login_required
 def index(request):
     return render(request, "main.html")
 
-
+@login_required
 def upload_media(request):
     if request.method == "POST":
         form = MediaFileForm(request.POST, request.FILES)
@@ -33,7 +34,7 @@ def upload_media(request):
     context = {"media_files": media_files}
     return render(request, "upload_media.html", context)
 
-
+@login_required
 def delete_media(request, media_id):
     if request.method == "DELETE":
         media_file = get_object_or_404(MediaFile, id=media_id)
@@ -42,7 +43,7 @@ def delete_media(request, media_id):
         context = {"media_files": media_files, "message": "File deleted!"}
         return render(request, "partials/mediafiles-list.html", context)
 
-
+@login_required
 def playlists(request):
     if request.method == "POST":
         form = PlaylistForm(request.POST)
@@ -60,12 +61,12 @@ def playlists(request):
     }
     return render(request, "playlists.html", context)
 
-
+@login_required
 def playlist_list(request):
     playlists = Playlist.objects.all()
     return render(request, "partials/playlist_list.html", {"playlists": playlists})
 
-
+@login_required
 def get_subgroups(request):
     group_id = request.GET.get("group_id")
     subgroups = Subgroup.objects.filter(group_id=group_id)
@@ -78,7 +79,7 @@ def get_subgroups(request):
     )
     return HttpResponse(subgroup_options)
 
-
+@login_required
 def group_create(request):
     if request.method == "POST":
         form = GroupForm(request.POST)
@@ -89,7 +90,7 @@ def group_create(request):
         form = GroupForm()
     return render(request, "partials/group_form.html", {"form": form})
 
-
+@login_required
 def subgroup_create(request):
     if request.method == "POST":
         form = SubgroupForm(request.POST)
@@ -100,7 +101,7 @@ def subgroup_create(request):
         form = SubgroupForm()
     return render(request, "partials/subgroup_form.html", {"form": form})
 
-
+@login_required
 def group_list(request):
     groups = Group.objects.all()
     subgroupform = SubgroupForm()
@@ -110,7 +111,7 @@ def group_list(request):
     }
     return render(request, "partials/group_list.html", context)
 
-
+@login_required
 def groups(request):
     groups = Group.objects.prefetch_related("subgroup_set").all()
     groupform = GroupForm()
@@ -122,7 +123,7 @@ def groups(request):
     }
     return render(request, "groups.html", context)
 
-
+@login_required
 def edit_playlist(request, playlist_id):
     playlist = get_object_or_404(Playlist, id=playlist_id)
     mediafiles = MediaFile.objects.all()
@@ -135,7 +136,7 @@ def edit_playlist(request, playlist_id):
     }
     return render(request, "edit_playlist.html", context)
 
-
+@login_required
 def add_content(request, playlist_id):
     playlist = get_object_or_404(Playlist, id=playlist_id)
 
@@ -165,7 +166,7 @@ def add_content(request, playlist_id):
 
     return redirect("core:edit_playlist", playlist_id=playlist.id)
 
-
+@login_required
 def delete_content(request, content_id):
     # Fetch the content object
     content = get_object_or_404(Content, id=content_id)
@@ -183,7 +184,7 @@ def delete_content(request, content_id):
     )
     return HttpResponse(html)
 
-
+@login_required
 def displays(request):
     return render(request, "displays.html")
 
@@ -219,7 +220,6 @@ def display_browser(request, playlist_id):
     # Add the content hash to the response headers
     response["X-Content-Hash"] = content_hash
     return response
-
 
 def get_video_duration(request, mediafile_id):
     mediafile = get_object_or_404(MediaFile, id=mediafile_id)

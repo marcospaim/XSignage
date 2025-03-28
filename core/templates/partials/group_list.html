@@ -1,5 +1,6 @@
-<!-- Group List -->
- <div id="group-list">
+{% load i18n %}
+
+<div id="group-list">
     {% include 'partials/subgroup_form.html' %}
     <div class="mt-6">
         {% for group in groups %}
@@ -13,5 +14,4 @@
             </div>
         {% endfor %}
     </div>
- 
 </div>

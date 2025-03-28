@@ -1,11 +1,11 @@
 {% extends "base.html" %}
+{% load i18n %}
+
 {% block content %}
 
 <div class="max-w-4xl mx-auto">
-    <h1 class="text-2xl font-bold mb-4">Groups and Subgroups</h1>
+    <h1 class="text-2xl font-bold mb-4">{% trans "Groups and Subgroups" %}</h1>
 
-
-    
     {% include 'partials/group_form.html' %}
    
     <!--{% include 'partials/subgroup_form.html' %}-->
