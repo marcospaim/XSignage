@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db.models import UniqueConstraint
-
+import uuid
 
 class Group(models.Model):
     name = models.CharField(max_length=50, unique=True)
@@ -116,3 +116,15 @@ class Content(models.Model):
 
 
 # Display
+
+class Display(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    guid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    active = models.BooleanField(default=True)
+    last_seen = models.DateTimeField(null=True, blank=True)
+    group = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True)
+    subgroup = models.ForeignKey(Subgroup, on_delete=models.SET_NULL, null=True)
+    Playlist = models.ForeignKey(Playlist, on_delete=models.SET_NULL, null=True)
+
+    def __str__(self):
+        return self.name

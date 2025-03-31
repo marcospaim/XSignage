@@ -1,0 +1,57 @@
+{% load i18n %}
+
+<div id="display-list" class="mt-6">
+    <h2 class="text-2xl font-bold mb-6 text-gray-800">{% trans "Displays" %}</h2>
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-white rounded-lg overflow-hidden">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="py-3 px-4 text-left">{% trans "Name" %}</th>
+                    <th class="py-3 px-4 text-left">{% trans "GUID" %}</th>
+                    <th class="py-3 px-4 text-left">{% trans "Status" %}</th>
+                    <th class="py-3 px-4 text-left">{% trans "Last Seen" %}</th>
+                    <th class="py-3 px-4 text-left">{% trans "Group" %}</th>
+                    <th class="py-3 px-4 text-left">{% trans "Subgroup" %}</th>
+                    <th class="py-3 px-4 text-left">{% trans "Playlist" %}</th>
+                    <th class="py-3 px-4 text-left">{% trans "Actions" %}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                {% for display in displays %}
+                <tr class="hover:bg-gray-50">
+                    <td class="py-3 px-4">{{ display.name }}</td>
+                    <td class="py-3 px-4">{{ display.guid }}</td>
+                    <td class="py-3 px-4">
+                        <span class="px-2 py-1 text-xs rounded-full 
+                            {% if display.active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                            {% if display.active %}{% trans "Active" %}{% else %}{% trans "Inactive" %}{% endif %}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4">
+                        {% if display.last_seen %}
+                            {{ display.last_seen|date:"Y-m-d H:i" }}
+                        {% else %}
+                            {% trans "Never" %}
+                        {% endif %}
+                    </td>
+                    <td class="py-3 px-4">{{ display.group.name|default:"-" }}</td>
+                    <td class="py-3 px-4">{{ display.subgroup.name|default:"-" }}</td>
+                    <td class="py-3 px-4">{{ display.Playlist.name|default:"-" }}</td>
+                    <td class="py-3 px-4">
+                        <a href="{% url 'core:edit_display' display.id %}" 
+                           class="text-delft_blue-700 hover:text-delft_blue-900 font-medium">
+                            {% trans "Edit" %}
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="py-4 px-4 text-center text-gray-500">
+                        {% trans "No displays found" %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

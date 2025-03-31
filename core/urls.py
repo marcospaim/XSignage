@@ -14,6 +14,7 @@ urlpatterns = [
     path("playlist/edit/<int:playlist_id>", views.edit_playlist, name="edit_playlist"),
     path("add-content/<int:playlist_id>/", views.add_content, name="add_content"),
     path("displays", views.displays, name="displays"),
+    path('displays/<int:display_id>/edit/', views.edit_display, name='edit_display'),
     path("group/create/", views.group_create, name="group_create"),
     path("subgroup/create/", views.subgroup_create, name="subgroup_create"),
     path("group/list/", views.group_list, name="group_list"),
@@ -31,6 +32,8 @@ urlpatterns = [
         views.get_video_duration,
         name="get_video_duration",
     ),
+    path('display/', views.display_view, name='display-view'),
+    path('display/<uuid:guid>/playlist/', views.get_display_playlist, name='get_display_playlist'),
 ]
 # Debugging: Print URL patterns
 for pattern in urlpatterns:

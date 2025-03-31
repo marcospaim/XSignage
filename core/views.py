@@ -4,12 +4,15 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.core.serializers import serialize
 from django.contrib.auth.decorators import login_required
+from django.utils.timezone import now
+from django.views.decorators.csrf import csrf_exempt
+
 import json
 import hashlib
 import subprocess
 
 from .forms import MediaFileForm, PlaylistForm, GroupForm, SubgroupForm
-from .models import MediaFile, Playlist, Group, Subgroup, Content, CustomPage
+from .models import MediaFile, Playlist, Group, Subgroup, Content, CustomPage, Display
 from .serializers import serialize_contents
 
 @login_required
@@ -184,11 +187,6 @@ def delete_content(request, content_id):
     )
     return HttpResponse(html)
 
-@login_required
-def displays(request):
-    return render(request, "displays.html")
-
-
 # Browser display for debug and tests
 def display_browser(request, playlist_id):
     # Fetch the playlist and its contents
@@ -244,5 +242,135 @@ def get_video_duration(request, mediafile_id):
         )
         duration = float(result.stdout.strip())
         return JsonResponse({"duration": int(duration)})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+@csrf_exempt
+def display_view(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            name = data.get("name")
+            guid = data.get("guid")
+
+            if not name or not guid:
+                return JsonResponse({"error": "Missing required fields"}, status=400)
+            
+            display, created = Display.objects.update_or_create(
+                guid=guid,
+                defaults={
+                    "name": name,
+                    "active": True,  # Set active to True if all required info is received
+                    "last_seen": now()
+                }
+            )
+
+            return JsonResponse({
+                "message": "Display saved successfully",
+                "display": {
+                    "name": display.name,
+                    "guid": str(display.guid),
+                    "active": display.active,
+                    "last_seen": display.last_seen.strftime("%Y-%m-%d %H:%M:%S")
+                }
+            }, status=201 if created else 200)
+
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON"}, status=400)
+    
+    return JsonResponse({"error": "Invalid request method"}, status=405)
+
+
+@login_required
+def displays(request):
+    displays = Display.objects.select_related('group', 'subgroup', 'Playlist').all()
+    context = {
+        "displays": displays,
+    }
+    return render(request, "displays.html", context)
+
+@login_required
+def edit_display(request, display_id):
+    display = get_object_or_404(Display, id=display_id)
+    
+    if request.method == "POST":
+        group_id = request.POST.get("group")
+        subgroup_id = request.POST.get("subgroup")
+        playlist_id = request.POST.get("playlist")
+        active = request.POST.get("active") == "on"
+        
+        # Update display fields
+        display.group_id = group_id if group_id else None
+        display.subgroup_id = subgroup_id if subgroup_id else None
+        display.Playlist_id = playlist_id if playlist_id else None
+        display.active = active
+        display.save()
+        
+        return redirect("core:displays")
+    
+    # Get all groups, subgroups, and playlists for the form
+    groups = Group.objects.all()
+    subgroups = Subgroup.objects.filter(group=display.group) if display.group else Subgroup.objects.none()
+    playlists = Playlist.objects.all()
+    
+    context = {
+        "display": display,
+        "groups": groups,
+        "subgroups": subgroups,
+        "playlists": playlists,
+    }
+    return render(request, "edit_display.html", context)
+
+
+@csrf_exempt
+def get_display_playlist(request, guid):
+    try:
+        # Find the display by GUID
+        display = Display.objects.get(guid=guid)
+        display.last_seen = now()
+        display.save()
+        
+        # 1. Check if the Display has a directly assigned Playlist
+        if display.Playlist:
+            playlist = display.Playlist
+        else:
+            # 2. Search for a Playlist with the same group and subgroup
+            playlist = Playlist.objects.filter(group=display.group, subgroup=display.subgroup).first()
+            
+            # 3. If not found, search for a Playlist with the same group
+            if not playlist:
+                playlist = Playlist.objects.filter(group=display.group).first()
+        
+        # 4. If no playlist found, return an error message
+        if not playlist:
+            return JsonResponse({"error": "No playlist available for this display."}, status=404)
+        
+        # Fetch the playlist contents
+        contents = playlist.content_set.all()
+        contents_json = serialize_contents(contents)
+        
+        # Generate a hash of the contents
+        content_hash = hashlib.md5(
+            "".join(f"{content.id}-{content.duration}" for content in contents).encode("utf-8")
+        ).hexdigest()
+        
+        # Create the response
+        response = render(
+            request,
+            "display/browser/display_browser.html",
+            {
+                "playlist": playlist,
+                "contents": contents,
+                "contents_json": contents_json,
+                "content_hash": content_hash,
+            },
+        )
+        
+        # Add the content hash to the response headers
+        response["X-Content-Hash"] = content_hash
+        return response
+    
+    except Display.DoesNotExist:
+        return JsonResponse({"error": "Display not found."}, status=404)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)

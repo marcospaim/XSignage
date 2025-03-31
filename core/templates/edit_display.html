@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md mt-4">
+    <h1 class="text-2xl font-bold mb-4">{% trans "Edit Display" %}: {{ display.name }}</h1>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div>
+                <label class="block text-gray-700 mb-2">{% trans "Group" %}</label>
+                <select name="group" class="w-full p-2 border rounded">
+                    <option value="">{% trans "Select Group" %}</option>
+                    {% for group in groups %}
+                        <option value="{{ group.id }}" {% if display.group_id == group.id %}selected{% endif %}>
+                            {{ group.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-gray-700 mb-2">{% trans "Subgroup" %}</label>
+                <select name="subgroup" class="w-full p-2 border rounded" id="id_subgroup">
+                    <option value="">{% trans "Select Subgroup" %}</option>
+                    {% for subgroup in subgroups %}
+                        <option value="{{ subgroup.id }}" {% if display.subgroup_id == subgroup.id %}selected{% endif %}>
+                            {{ subgroup.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-gray-700 mb-2">{% trans "Playlist" %}</label>
+                <select name="playlist" class="w-full p-2 border rounded">
+                    <option value="">{% trans "Select Playlist" %}</option>
+                    {% for playlist in playlists %}
+                        <option value="{{ playlist.id }}" {% if display.Playlist_id == playlist.id %}selected{% endif %}>
+                            {{ playlist.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="flex items-center">
+                <input type="checkbox" name="active" id="id_active" class="mr-2" {% if display.active %}checked{% endif %}>
+                <label for="id_active" class="text-gray-700">{% trans "Active" %}</label>
+            </div>
+        </div>
+        
+        <div class="flex justify-end space-x-4">
+            <a href="{% url 'core:displays' %}" class="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 transition-colors">
+                {% trans "Cancel" %}
+            </a>
+            <button type="submit" class="bg-delft_blue-700 text-white px-4 py-2 rounded hover:bg-delft_blue-800 transition-colors">
+                {% trans "Save Changes" %}
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Update subgroups when group changes
+    document.querySelector('select[name="group"]').addEventListener('change', function() {
+        const groupId = this.value;
+        const subgroupSelect = document.getElementById('id_subgroup');
+        
+        if (groupId) {
+            fetch(`/get_subgroups/?group_id=${groupId}`)
+                .then(response => response.text())
+                .then(html => {
+                    // Keep the first option (Select Subgroup) and append new options
+                    subgroupSelect.innerHTML = '<option value="">{% trans "Select Subgroup" %}</option>' + html;
+                });
+        } else {
+            subgroupSelect.innerHTML = '<option value="">{% trans "Select Subgroup" %}</option>';
+        }
+    });
+</script>
+{% endblock %}

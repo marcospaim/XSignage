@@ -1,6 +1,12 @@
 {% extends "base.html" %}
+{% load i18n %}
+
 {% block content %}
-
-Displays
-
-{% endblock content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold text-gray-800">{% trans "Display Management" %}</h1>
+    </div>
+    
+    {% include 'partials/display_list.html' %}
+</div>
+{% endblock %}
